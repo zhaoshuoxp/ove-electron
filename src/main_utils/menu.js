@@ -5,6 +5,7 @@ const { dialog } = require("electron");
 const isMac = process.platform === "darwin";
 
 module.exports = function createMenu({ createWindow, getSeqJsonFromPath }) {
+
   const template = [
     // { role: 'appMenu' }
     ...(isMac

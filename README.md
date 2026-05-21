@@ -1,3 +1,11 @@
+## Fork Customization Notice
+
+This fork includes custom Circular View behavior for local workflow needs:
+
+- Circular feature internal labels are enabled by default.
+- A new Axis Font Scale menu was added in `View -> Labels`.
+- Supported Axis Font Scale presets are: `33%`, `50%`, `75%`, `100%`, `125%`, `150%`, and `200%`.
+
 ![image](https://user-images.githubusercontent.com/2730609/67169732-df3ca800-f348-11e9-8003-baa91cd8cfec.png)
 
 # ove-electron

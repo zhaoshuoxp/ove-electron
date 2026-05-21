@@ -10,6 +10,15 @@ contextBridge.exposeInMainWorld("api", {
   send: async (type, arg) => {
     return await ipcRenderer.invoke(type, arg);
   },
+  on: (type, callback) => {
+    const wrapped = (_event, payload) => {
+      callback(payload);
+    };
+    ipcRenderer.on(type, wrapped);
+    return () => {
+      ipcRenderer.removeListener(type, wrapped);
+    };
+  },
 });
 
 // Add the initial seq data to the renderer window

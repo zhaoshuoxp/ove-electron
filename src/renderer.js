@@ -3,11 +3,119 @@ const seqDataToUse = window.initialSeqJson || { circular: true };
 // export default generateSequenceData()
 const originalTitle = document.title;
 
+let axisFontScalePercent = 100;
+
+const circularViewStyleId = "ove-circular-view-dynamic-style";
+const axisScalePercents = [33, 50, 75, 100, 125, 150, 200];
+
 setNewTitle(seqDataToUse.name);
 
 function setNewTitle(name) {
   document.title = originalTitle + " -- " + (name || "Untitled Sequence");
 }
+
+function updateCircularViewStyles() {
+  let styleEl = document.getElementById(circularViewStyleId);
+  if (!styleEl) {
+    styleEl = document.createElement("style");
+    styleEl.id = circularViewStyleId;
+    document.head.appendChild(styleEl);
+  }
+
+  const scaledAxisFontSize = Math.max(
+    6,
+    Math.round((12 * axisFontScalePercent) / 100)
+  );
+
+  styleEl.textContent = `
+    .veCircularView .veAxis text,
+    .veCircularView g[class*="axis"] text,
+    .veCircularView g[class*="Axis"] text,
+    .veCircularView text[class*="axis"],
+    .veCircularView text[class*="Axis"] {
+      font-size: ${scaledAxisFontSize}px !important;
+    }
+
+    .veCircularView {
+      background: transparent !important;
+      border: none !important;
+    }
+  `;
+}
+
+function setAxisFontScalePercent(percent) {
+  const nextValue = Number(percent);
+  if (!Number.isFinite(nextValue)) {
+    return;
+  }
+  if (!axisScalePercents.includes(nextValue)) {
+    return;
+  }
+  axisFontScalePercent = nextValue;
+  updateCircularViewStyles();
+}
+
+function refreshAxisScaleMenuSelection() {
+  if (!editor) {
+    return;
+  }
+  editor.updateEditor({
+    menuFilter: (menuDef) => insertAxisScaleIntoLabelsMenu(menuDef),
+  });
+}
+
+function buildAxisFontScaleMenuItem() {
+  return {
+    axisFontScaleMenu: true,
+    text: "Axis Font Scale",
+    submenu: axisScalePercents.map((percent) => ({
+      text: `${percent}%`,
+      shouldDismissPopover: true,
+      checked: axisFontScalePercent === percent,
+      onClick: () => {
+        setAxisFontScalePercent(percent);
+        refreshAxisScaleMenuSelection();
+      },
+    })),
+  };
+}
+
+function insertAxisScaleIntoLabelsMenu(menuDef) {
+  const viewMenu = (menuDef || []).find((item) => item && item.text === "View");
+  if (!viewMenu || !Array.isArray(viewMenu.submenu)) {
+    return menuDef;
+  }
+
+  const labelsMenu = viewMenu.submenu.find(
+    (item) => item && item.text === "Labels"
+  );
+  if (!labelsMenu || !Array.isArray(labelsMenu.submenu)) {
+    return menuDef;
+  }
+
+  const existingIndex = labelsMenu.submenu.findIndex(
+    (item) => item && item.axisFontScaleMenu
+  );
+  const labelSizeIndex = labelsMenu.submenu.findIndex(
+    (item) => item && item.cmd === "adjustLabelSize"
+  );
+
+  const axisMenuItem = buildAxisFontScaleMenuItem();
+  if (existingIndex > -1) {
+    labelsMenu.submenu[existingIndex] = axisMenuItem;
+    return menuDef;
+  }
+
+  if (labelSizeIndex > -1) {
+    labelsMenu.submenu.splice(labelSizeIndex + 1, 0, axisMenuItem);
+  } else {
+    labelsMenu.submenu.push(axisMenuItem);
+  }
+
+  return menuDef;
+}
+
+updateCircularViewStyles();
 
 const handleSave =
   (isSaveAs) =>
@@ -76,6 +184,8 @@ const editor = window.createVectorEditor("createDomNodeForMe", {
   autoAnnotateParts: window._ove_addons.autoAnnotateParts,
   autoAnnotatePrimers: window._ove_addons.autoAnnotatePrimers,
   isFullscreen: true,
+  showCicularViewInternalLabels: true,
+  menuFilter: (menuDef) => insertAxisScaleIntoLabelsMenu(menuDef),
   // or you can pass "createDomNodeForMe" but make sure to use editor.close() to clean up the dom node!
 
   //you can also pass a DOM node as the first arg here
@@ -219,6 +329,7 @@ const isCircular = seqDataToUse && seqDataToUse.circular;
 editor.updateEditor({
   sequenceData: seqDataToUse,
   sequenceDataHistory: {}, //clear the sequenceDataHistory if there is any left over from a previous sequence
+  showCicularViewInternalLabels: true,
   annotationVisibility: {
     // features: false,
     orfTranslations: false,
