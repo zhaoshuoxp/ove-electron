@@ -7,6 +7,7 @@ let axisFontScalePercent = 100;
 
 const circularViewStyleId = "ove-circular-view-dynamic-style";
 const axisScalePercents = [33, 50, 75, 100, 125, 150, 200];
+const axisScaleStorageKey = "oveAxisFontScalePercent";
 
 setNewTitle(seqDataToUse.name);
 
@@ -52,7 +53,15 @@ function setAxisFontScalePercent(percent) {
     return;
   }
   axisFontScalePercent = nextValue;
+  window.localStorage.setItem(axisScaleStorageKey, String(axisFontScalePercent));
   updateCircularViewStyles();
+}
+
+function restoreAxisFontScalePercent() {
+  const stored = Number(window.localStorage.getItem(axisScaleStorageKey));
+  if (axisScalePercents.includes(stored)) {
+    axisFontScalePercent = stored;
+  }
 }
 
 function refreshAxisScaleMenuSelection() {
@@ -115,6 +124,7 @@ function insertAxisScaleIntoLabelsMenu(menuDef) {
   return menuDef;
 }
 
+restoreAxisFontScalePercent();
 updateCircularViewStyles();
 
 const handleSave =

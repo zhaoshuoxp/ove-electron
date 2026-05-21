@@ -7,7 +7,8 @@
   "scripts": {
     "start": "electron . ./pA11990.gb",
     "test": "mocha",
-    "build": "env-cmd electron-builder -wml --publish never",
+    "build": "env-cmd -f .env.example electron-builder --mac --publish never",
+    "build-all": "env-cmd -f .env.example electron-builder -wml --publish never",
     "build-win": "env-cmd electron-builder --win --publish never",
     "build-mac": "env-cmd electron-builder --mac --publish never",
     "build-linux": "env-cmd electron-builder --linux --publish never",
