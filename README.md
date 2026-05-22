@@ -1,4 +1,4 @@
-## Fork 1.6 updat
+## Fork 1.6 update
 
 This fork includes:
 
