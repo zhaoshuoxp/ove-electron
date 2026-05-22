@@ -82,6 +82,42 @@ I've set up a single spectron test under /test
 It can be run via `yarn test`
 Unfortunately spectron doesn't support interacting with native dialogs so I'd need to mock those to have the tests be at all useful. I should probably do this sometime down the line. (note OVE itself is close to full test coverage https://github.com/TeselaGen/openVectorEditor)
 
+# Primer3 packaging
+
+Primer Design uses the native `primer3_core` executable. Before packaging, run:
+
+```
+yarn prepare-primer3
+```
+
+The script copies `primer3_core` and `primer3_config` into `bin/primer3/<platform>-<arch>/`. `electron-builder` packages `bin/primer3` as an app resource, and the app looks there before falling back to Homebrew or PATH.
+
+To build Primer3 from the official primer3-org source for the current platform:
+
+```
+yarn prepare-primer3:source
+```
+
+This downloads `primer3-org/primer3` v2.6.1 and runs `make -C src install`. It requires the target platform's normal C build tools. On Windows, run it in an environment with `make` and a compatible compiler, such as MSYS2/MinGW.
+
+Native binaries are platform-specific. Do not copy `darwin-arm64/primer3_core` into other folders. For cross-platform releases, prepare each target resource folder on that target platform, or provide prebuilt binaries explicitly:
+
+```
+PRIMER3_PLATFORM_ARCH=linux-x64 PRIMER3_CORE_PATH=/path/to/primer3_core PRIMER3_CONFIG_PATH=/path/to/primer3_config yarn prepare-primer3
+```
+
+Expected resource folders are:
+
+- `darwin-arm64`
+- `darwin-x64`
+- `win32-x64`
+- `linux-x64`
+- `linux-arm64`
+
+The packaging scripts validate the needed folders before building. For example, `yarn build-all` requires all folders above, while `yarn build-mac` requires both macOS folders.
+
+Primer3 is GPL-licensed software; keep its license with distributed binaries.
+
 
 # DEPRECATED::DEPRECATED::DEPRECATED::DEPRECATED::DEPRECATED::DEPRECATED::DEPRECATED::
 # OLD -- Releasing

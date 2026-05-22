@@ -4,6 +4,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const bioParsers = require("bio-parsers");
 const fs = require("fs");
+const { spawn } = require("child_process");
 const createMenu = require("./src/main_utils/menu");
 const windowStateKeeper = require("electron-window-state");
 const { autoUpdater } = require("electron-updater");
@@ -14,6 +15,236 @@ let isMacOpenTriggered = false;
 // be closed automatically when the JavaScript object is garbage collected.
 const windows = [];
 createMenu({ windows, createWindow, getSeqJsonFromPath });
+
+function getPrimer3CoreCandidates() {
+  const exeName = process.platform === "win32" ? "primer3_core.exe" : "primer3_core";
+  const platformArch = `${process.platform}-${process.arch}`;
+  const candidates = [
+    process.env.PRIMER3_CORE_PATH,
+  ];
+  if (app.isPackaged) {
+    candidates.push(
+      path.join(process.resourcesPath || "", "bin", "primer3", platformArch, exeName),
+      path.join(process.resourcesPath || "", "bin", exeName)
+    );
+  } else {
+    candidates.push(
+      path.join(__dirname, "bin", "primer3", platformArch, exeName),
+      path.join(__dirname, "bin", exeName)
+    );
+  }
+  candidates.push(
+    path.join("/opt/homebrew/bin", exeName),
+    path.join("/usr/local/bin", exeName),
+    exeName
+  );
+  return candidates.filter(Boolean);
+}
+
+function getPrimer3ConfigPath() {
+  const platformArch = `${process.platform}-${process.arch}`;
+  const candidates = [
+    process.env.PRIMER3_CONFIG_PATH,
+  ];
+  if (app.isPackaged) {
+    candidates.push(
+      path.join(process.resourcesPath || "", "bin", "primer3", platformArch, "primer3_config"),
+      path.join(process.resourcesPath || "", "bin", "primer3_config")
+    );
+  } else {
+    candidates.push(
+      path.join(__dirname, "bin", "primer3", platformArch, "primer3_config"),
+      path.join(__dirname, "primer3_config"),
+      path.join(__dirname, "bin", "primer3_config")
+    );
+  }
+  candidates.push(
+    "/opt/homebrew/share/primer3/primer3_config",
+    "/usr/local/share/primer3/primer3_config"
+  );
+  return candidates.find((candidate) => candidate && fs.existsSync(candidate));
+}
+
+function buildPrimer3Input({
+  sequence,
+  sequenceId,
+  target,
+  includedRegion,
+  task,
+  size,
+  tm,
+  gc,
+  productSizeRange,
+  numReturn,
+}) {
+  const pickLeft = task === "both" || task === "forward";
+  const pickRight = task === "both" || task === "reverse";
+  const configPath = getPrimer3ConfigPath();
+  const lines = [
+    `SEQUENCE_ID=${sequenceId || "ove_primer_design"}`,
+    `SEQUENCE_TEMPLATE=${sequence}`,
+    "PRIMER_TASK=generic",
+    `PRIMER_PICK_LEFT_PRIMER=${pickLeft ? 1 : 0}`,
+    `PRIMER_PICK_RIGHT_PRIMER=${pickRight ? 1 : 0}`,
+    "PRIMER_PICK_INTERNAL_OLIGO=0",
+    "PRIMER_EXPLAIN_FLAG=1",
+    `PRIMER_NUM_RETURN=${numReturn || 5}`,
+    `PRIMER_MIN_SIZE=${size.min}`,
+    `PRIMER_OPT_SIZE=${size.opt}`,
+    `PRIMER_MAX_SIZE=${size.max}`,
+    `PRIMER_MIN_TM=${tm.min}`,
+    `PRIMER_OPT_TM=${tm.opt}`,
+    `PRIMER_MAX_TM=${tm.max}`,
+    `PRIMER_MIN_GC=${gc.min}`,
+    `PRIMER_OPT_GC_PERCENT=${gc.opt}`,
+    `PRIMER_MAX_GC=${gc.max}`,
+  ];
+
+  if (configPath) {
+    lines.push(`PRIMER_THERMODYNAMIC_PARAMETERS_PATH=${configPath}`);
+  }
+  if (pickLeft && pickRight) {
+    lines.push(`PRIMER_PRODUCT_SIZE_RANGE=${productSizeRange}`);
+  }
+  if (target && Number.isFinite(target.start) && Number.isFinite(target.length)) {
+    lines.push(`SEQUENCE_TARGET=${target.start},${target.length}`);
+  }
+  if (
+    includedRegion &&
+    Number.isFinite(includedRegion.start) &&
+    Number.isFinite(includedRegion.length)
+  ) {
+    lines.push(`SEQUENCE_INCLUDED_REGION=${includedRegion.start},${includedRegion.length}`);
+  }
+
+  lines.push("=");
+  return lines.join("\n") + "\n";
+}
+
+function parsePrimer3Output(output) {
+  const values = {};
+  output
+    .split(/\r?\n/)
+    .filter((line) => line && line !== "=")
+    .forEach((line) => {
+      const index = line.indexOf("=");
+      if (index > -1) {
+        values[line.slice(0, index)] = line.slice(index + 1);
+      }
+    });
+
+  const maxResults = Math.max(
+    Number(values.PRIMER_PAIR_NUM_RETURNED || 0),
+    Number(values.PRIMER_LEFT_NUM_RETURNED || 0),
+    Number(values.PRIMER_RIGHT_NUM_RETURNED || 0)
+  );
+  const results = [];
+  for (let i = 0; i < maxResults; i += 1) {
+    const leftPosition = values[`PRIMER_LEFT_${i}`];
+    const rightPosition = values[`PRIMER_RIGHT_${i}`];
+    const [leftStart, leftLength] = (leftPosition || "").split(",").map(Number);
+    const [rightStart, rightLength] = (rightPosition || "").split(",").map(Number);
+    results.push({
+      index: i + 1,
+      penalty: values[`PRIMER_PAIR_${i}_PENALTY`],
+      productSize: values[`PRIMER_PAIR_${i}_PRODUCT_SIZE`],
+      forward: values[`PRIMER_LEFT_${i}_SEQUENCE`]
+        ? {
+            sequence: values[`PRIMER_LEFT_${i}_SEQUENCE`],
+            tm: values[`PRIMER_LEFT_${i}_TM`],
+            gc: values[`PRIMER_LEFT_${i}_GC_PERCENT`],
+            start: Number.isFinite(leftStart) ? leftStart + 1 : undefined,
+            length: Number.isFinite(leftLength) ? leftLength : undefined,
+          }
+        : null,
+      reverse: values[`PRIMER_RIGHT_${i}_SEQUENCE`]
+        ? {
+            sequence: values[`PRIMER_RIGHT_${i}_SEQUENCE`],
+            tm: values[`PRIMER_RIGHT_${i}_TM`],
+            gc: values[`PRIMER_RIGHT_${i}_GC_PERCENT`],
+            start: Number.isFinite(rightStart) ? rightStart + 1 : undefined,
+            length: Number.isFinite(rightLength) ? rightLength : undefined,
+          }
+        : null,
+    });
+  }
+
+  return {
+    values,
+    results,
+    error: values.PRIMER_ERROR,
+    explain: {
+      pair: values.PRIMER_PAIR_EXPLAIN,
+      left: values.PRIMER_LEFT_EXPLAIN,
+      right: values.PRIMER_RIGHT_EXPLAIN,
+    },
+  };
+}
+
+function runPrimer3Core(input) {
+  const candidates = getPrimer3CoreCandidates();
+  let candidateIndex = 0;
+
+  return new Promise((resolve, reject) => {
+    const tryNextCandidate = () => {
+      const candidate = candidates[candidateIndex];
+      candidateIndex += 1;
+      if (!candidate) {
+        reject(
+          new Error(
+            "primer3_core was not found. Install primer3_core and make it available on PATH, set PRIMER3_CORE_PATH, or place it in ./bin."
+          )
+        );
+        return;
+      }
+
+      const child = spawn(candidate, [], { stdio: ["pipe", "pipe", "pipe"] });
+      let stdout = "";
+      let stderr = "";
+      let didSpawn = false;
+      let settled = false;
+
+      child.stdout.on("data", (chunk) => {
+        stdout += chunk.toString();
+      });
+      child.stderr.on("data", (chunk) => {
+        stderr += chunk.toString();
+      });
+      child.on("spawn", () => {
+        didSpawn = true;
+        child.stdin.end(input);
+      });
+      child.on("error", (error) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        if ((error.code === "ENOENT" || error.code === "ENOTDIR") && !didSpawn) {
+          tryNextCandidate();
+          return;
+        }
+        reject(error);
+      });
+      child.on("close", (code) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        if (code === 0) {
+          resolve({ stdout, stderr, binaryPath: candidate });
+          return;
+        }
+        if (!didSpawn) {
+          tryNextCandidate();
+          return;
+        }
+        reject(new Error(stderr || `primer3_core exited with code ${code}`));
+      });
+    };
+
+    tryNextCandidate();
+  });
+}
 
 async function getSeqJsonFromPath(_filePath) {
   const filePath = _filePath || process.argv[1];
@@ -209,6 +440,19 @@ ipcMain.handle("ove_showSaveDialog", async (event, opts) => {
     BrowserWindow.fromWebContents(event.sender),
     opts
   );
+});
+
+ipcMain.handle("ove_designPrimers", async (_event, request) => {
+  const primer3Input = buildPrimer3Input(request);
+  const { stdout, stderr, binaryPath } = await runPrimer3Core(primer3Input);
+  const parsedOutput = parsePrimer3Output(stdout);
+  return {
+    ...parsedOutput,
+    binaryPath,
+    primer3Input,
+    stderr,
+    rawOutput: stdout,
+  };
 });
 
 /*  **************************************************  */

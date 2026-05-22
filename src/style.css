@@ -21,3 +21,277 @@
 .bp3-toast-container {
   z-index: 100000000;
 }
+.primerDesignPanel {
+  position: fixed;
+  top: 35px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 99990;
+  display: flex;
+  flex-direction: column;
+  background: #f7f9fb;
+  color: #202b33;
+}
+.primerDesignPanel.hidden {
+  display: none;
+}
+.primerDesignPanel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #d8e1e8;
+  background: #ffffff;
+}
+.primerDesignPanel__header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.primerDesignPanel__close,
+.primerDesignPanel__primary {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid #c5d0d8;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #202b33;
+  cursor: pointer;
+}
+.primerDesignPanel__primary {
+  border-color: #106ba3;
+  background: #137cbd;
+  color: #ffffff;
+  font-weight: 600;
+}
+.primerDesignPanel__body {
+  display: grid;
+  grid-template-columns: minmax(360px, 1.3fr) minmax(260px, 0.7fr);
+  gap: 16px;
+  align-content: start;
+  width: min(1180px, calc(100% - 40px));
+  margin: 20px auto;
+  overflow: auto;
+}
+.primerDesignSection {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 14px;
+  border: 1px solid #d8e1e8;
+  border-radius: 4px;
+  background: #ffffff;
+}
+.primerDesignSection--sequence,
+.primerDesignSection--parameters,
+.primerDesignRunBar,
+.primerDesignResults {
+  grid-column: 1 / -1;
+}
+.primerDesignSection h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.primerDesignField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.primerDesignField--wide {
+  grid-column: 1 / -1;
+}
+.primerDesignField textarea,
+.primerDesignField input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #c5d0d8;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #202b33;
+  font: inherit;
+}
+.primerDesignField textarea {
+  min-height: 180px;
+  padding: 10px;
+  font-family: "Ubuntu Mono", Menlo, Consolas, monospace;
+  font-weight: 400;
+  resize: vertical;
+}
+.primerDesignField input {
+  height: 34px;
+  padding: 0 10px;
+}
+.primerDesignActions,
+.primerDesignCoordinateRow,
+.primerDesignRunBar {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.primerDesignActions button,
+.primerDesignCoordinateRow button,
+.primerDesignResult__primer button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #c5d0d8;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #202b33;
+  cursor: pointer;
+}
+.primerDesignChoices {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+.primerDesignChoices label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.primerDesignTripleHeader,
+.primerDesignTriple {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) repeat(3, minmax(80px, 120px));
+  gap: 8px;
+  align-items: center;
+}
+.primerDesignTripleHeader {
+  color: #5c7080;
+  font-size: 12px;
+  font-weight: 600;
+}
+.primerDesignTriple span {
+  font-size: 13px;
+  font-weight: 600;
+}
+.primerDesignTriple input {
+  width: 100%;
+  height: 34px;
+  box-sizing: border-box;
+  padding: 0 8px;
+  border: 1px solid #c5d0d8;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #202b33;
+}
+.primerDesignStatus {
+  min-height: 20px;
+  color: #5c7080;
+  font-size: 13px;
+}
+.primerDesignStatus--error {
+  color: #c23030;
+}
+.primerDesignResults {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.primerDesignResult,
+.primerDesignEmptyResult {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #d8e1e8;
+  border-radius: 4px;
+  background: #ffffff;
+}
+.primerDesignResult__summary,
+.primerDesignResult__primer {
+  display: grid;
+  grid-template-columns: 90px minmax(160px, 1fr) minmax(160px, auto) auto;
+  gap: 10px;
+  align-items: center;
+}
+.primerDesignResult__summary {
+  grid-template-columns: 90px repeat(2, auto) 1fr;
+  color: #5c7080;
+}
+.primerDesignResult__summary strong {
+  color: #202b33;
+}
+.primerDesignResult__primer span {
+  font-size: 13px;
+  font-weight: 600;
+}
+.primerDesignResult__primer code {
+  min-height: 24px;
+  padding: 4px 8px;
+  overflow-wrap: anywhere;
+  border-radius: 4px;
+  background: #eef3f7;
+  font-family: "Ubuntu Mono", Menlo, Consolas, monospace;
+}
+body.ve-dark-mode .primerDesignPanel,
+body.dark-mode .primerDesignPanel {
+  background: #1f2933;
+  color: #f5f8fa;
+}
+body.ve-dark-mode .primerDesignPanel__header,
+body.dark-mode .primerDesignPanel__header,
+body.ve-dark-mode .primerDesignSection,
+body.dark-mode .primerDesignSection,
+body.ve-dark-mode .primerDesignField textarea,
+body.dark-mode .primerDesignField textarea,
+body.ve-dark-mode .primerDesignField input,
+body.dark-mode .primerDesignField input,
+body.ve-dark-mode .primerDesignTriple input,
+body.dark-mode .primerDesignTriple input,
+body.ve-dark-mode .primerDesignResult,
+body.dark-mode .primerDesignResult,
+body.ve-dark-mode .primerDesignEmptyResult,
+body.dark-mode .primerDesignEmptyResult {
+  border-color: #394b59;
+  background: #293742;
+  color: #f5f8fa;
+}
+body.ve-dark-mode .primerDesignPanel__close,
+body.dark-mode .primerDesignPanel__close,
+body.ve-dark-mode .primerDesignActions button,
+body.dark-mode .primerDesignActions button,
+body.ve-dark-mode .primerDesignCoordinateRow button,
+body.dark-mode .primerDesignCoordinateRow button,
+body.ve-dark-mode .primerDesignResult__primer button,
+body.dark-mode .primerDesignResult__primer button {
+  border-color: #5c7080;
+  background: #30404d;
+  color: #f5f8fa;
+}
+body.ve-dark-mode .primerDesignResult__primer code,
+body.dark-mode .primerDesignResult__primer code {
+  background: #202b33;
+}
+body.ve-dark-mode .primerDesignResult__summary strong,
+body.dark-mode .primerDesignResult__summary strong {
+  color: #f5f8fa;
+}
+@media (max-width: 720px) {
+  .primerDesignPanel__body {
+    grid-template-columns: 1fr;
+    width: calc(100% - 24px);
+    margin: 12px auto;
+  }
+  .primerDesignCoordinateRow,
+  .primerDesignRunBar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .primerDesignTripleHeader {
+    display: none;
+  }
+  .primerDesignTriple,
+  .primerDesignResult__summary,
+  .primerDesignResult__primer {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,22 +1,29 @@
 {
   "name": "ove-electron",
-  "version": "1.5.5",
+  "version": "1.6.0",
   "description": "An open source vector or plasmid editor",
   "main": "main.js",
   "author": "Thomas (tnrich) Willheim <tnrich@teselagen.com>",
   "scripts": {
     "start": "electron . ./pA11990.gb",
     "test": "mocha",
-    "build": "env-cmd -f .env.example electron-builder --mac --publish never",
-    "build-all": "env-cmd -f .env.example electron-builder -wml --publish never",
-    "build-win": "env-cmd -f .env.example electron-builder --win portable --x64 --publish never",
-    "build-win-nsis": "env-cmd -f .env.example electron-builder --win nsis --x64 --publish never",
-    "build-mac": "env-cmd electron-builder --mac --publish never",
-    "build-linux": "env-cmd electron-builder --linux --publish never",
-    "deploy": "env-cmd electron-builder --mac --linux --win --publish always",
-    "deploy-win": "electron-builder --win --publish always",
-    "deploy-mac": "env-cmd electron-builder --mac --publish always",
-    "deploy-linux": "env-cmd electron-builder --linux --publish always",
+    "prepare-primer3": "node scripts/prepare-primer3.js",
+    "prepare-primer3:source": "node scripts/prepare-primer3.js --from-source",
+    "validate-primer3": "node scripts/validate-primer3-resources.js",
+    "validate-primer3:mac": "node scripts/validate-primer3-resources.js darwin-arm64 darwin-x64",
+    "validate-primer3:win": "node scripts/validate-primer3-resources.js win32-x64",
+    "validate-primer3:linux": "node scripts/validate-primer3-resources.js linux-x64 linux-arm64",
+    "validate-primer3:all": "node scripts/validate-primer3-resources.js darwin-arm64 darwin-x64 win32-x64 linux-x64 linux-arm64",
+    "build": "yarn prepare-primer3 && yarn validate-primer3:mac && env-cmd -f .env.example electron-builder --mac --publish never",
+    "build-all": "yarn validate-primer3:all && env-cmd -f .env.example electron-builder -wml --publish never",
+    "build-win": "yarn validate-primer3:win && env-cmd -f .env.example electron-builder --win portable --x64 --publish never",
+    "build-win-nsis": "yarn validate-primer3:win && env-cmd -f .env.example electron-builder --win nsis --x64 --publish never",
+    "build-mac": "yarn prepare-primer3 && yarn validate-primer3:mac && env-cmd electron-builder --mac --publish never",
+    "build-linux": "yarn validate-primer3:linux && env-cmd electron-builder --linux --publish never",
+    "deploy": "yarn validate-primer3:all && env-cmd electron-builder --mac --linux --win --publish always",
+    "deploy-win": "yarn validate-primer3:win && electron-builder --win --publish always",
+    "deploy-mac": "yarn prepare-primer3 && yarn validate-primer3:mac && env-cmd electron-builder --mac --publish always",
+    "deploy-linux": "yarn validate-primer3:linux && env-cmd electron-builder --linux --publish always",
     "generateChangelog": "auto-changelog -p && git add . && git commit -m 'Updating CHANGELOG' && git push"
   },
   "build": {
@@ -62,6 +69,15 @@
       "entitlementsInherit": "src/misc/entitlements.mac.plist"
     },
     "appId": "com.teselagen.openVectorEditor",
+    "extraResources": [
+      {
+        "from": "bin/primer3",
+        "to": "bin/primer3",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
     "fileAssociations": [
       {
         "ext": "json"

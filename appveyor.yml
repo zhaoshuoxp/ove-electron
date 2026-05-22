@@ -15,9 +15,13 @@ init:
 
 install:
   - ps: Install-Product node 14 x64
+  - choco install msys2 --no-progress -y
+  - C:\tools\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed make mingw-w64-x86_64-gcc"
+  - set PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\mingw64\bin;%PATH%
   - yarn
 
 build_script:
+  - yarn prepare-primer3:source
   - yarn deploy-win
 
 test: off

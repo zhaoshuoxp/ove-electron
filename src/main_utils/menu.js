@@ -1,10 +1,15 @@
-const { Menu } = require("electron");
-
-const { dialog } = require("electron");
+const { BrowserWindow, Menu, dialog } = require("electron");
 
 const isMac = process.platform === "darwin";
 
 module.exports = function createMenu({ createWindow, getSeqJsonFromPath }) {
+  function openPrimerDesign() {
+    const targetWindow =
+      BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+    if (targetWindow) {
+      targetWindow.webContents.send("ove_openPrimerDesign");
+    }
+  }
 
   const template = [
     // { role: 'appMenu' }
@@ -120,6 +125,15 @@ module.exports = function createMenu({ createWindow, getSeqJsonFromPath }) {
         { role: "zoomout" },
         { type: "separator" },
         { role: "togglefullscreen" },
+      ],
+    },
+    {
+      label: "Tools",
+      submenu: [
+        {
+          label: "Primer Design",
+          click: openPrimerDesign,
+        },
       ],
     },
     // { role: 'windowMenu' }
