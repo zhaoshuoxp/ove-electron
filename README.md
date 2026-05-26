@@ -18,10 +18,12 @@ This packages the open-vector-editor web app as an electron tool that can be use
 
 ## Download
 
-Windows x86_64: https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor.Setup.1.6.0.exe
+Windows x86_64: [https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor.Setup.1.6.0.exe](https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor.Setup.1.6.0-win.exe)
 
-Mac Intel: https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor-1.6.0.dmg
+Mac Intel: [https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor-1.6.0.dmg](https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor-1.6.0-mac-x64.dmg)
 
-Mac AppleSilicon: https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor-1.6.0-arm64.dmg
+Mac AppleSilicon: [https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor-1.6.0-arm64.dmg](https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor-1.6.0-mac-arm64.dmg)
 
-For Linux, you need to clone the repo and  build by `yarn && yarn build`.
+Linux x86_64: https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor-1.6.0-linux-x64.AppImage
+
+Linux arm64: https://github.com/zhaoshuoxp/ove-electron/releases/download/v1/OpenVectorEditor-1.6.0-linux-arm64.AppImage
